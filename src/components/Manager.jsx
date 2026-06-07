@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react'
 import { use } from 'react'
 import { useRef, useState } from 'react'
-import { ToastContainer, toast, Bounce} from 'react-toastify';
+import { ToastContainer, toast, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { v4 as uuidv4 } from "uuid";
 
 const Manager = () => {
     const ref = useRef()
@@ -20,13 +21,13 @@ const Manager = () => {
     const copyText = (text) => {
         toast('Copied to clipboard', {
             position: "top-right",
-            autoClose: 5000,
+            autoClose: 3000,
             hideProgressBar: false,
             closeOnClick: true,
             pauseOnHover: true,
             draggable: true,
             progress: undefined,
-            theme: "light",
+            theme: "dark",
             transition: Bounce,
         });
         navigator.clipboard.writeText(text)
@@ -47,11 +48,66 @@ const Manager = () => {
     }
 
     const savePassword = () => {
-        setpasswordArray([...passwordArray, form])
-        localStorage.setItem("password", JSON.stringify([...passwordArray, form]))
+        if(form.site.length >1 && form.username.length > 1 && form.username.length > 1){
+            setpasswordArray([...passwordArray,{...form, id: uuidv4()}])
+        localStorage.setItem("password", JSON.stringify([...passwordArray,{...form, id: uuidv4()}]))
         console.log(([...passwordArray, form]))
+        setform({site: "",username:"",password:""})
+        toast('Password saved', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Bounce,
+        });
+        }
+        else{
+             toast('Password not saved', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Bounce,
+        });
+        }
+        
     }
+    const deletePassword = (id) => {
+        console.log(id)
+        let c = confirm("Do you want to delete this password")
+        if(c){
 
+            setpasswordArray(passwordArray.filter(item=>item.id!==id))
+            localStorage.setItem("password", JSON.stringify(passwordArray.filter(item=>item.id!==id)))
+            toast('Password Deleted', {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+            transition: Bounce,
+        });
+        }
+    }
+    const editPassword = (id) => {
+        setform(passwordArray.filter(i=>i.id===id)[0])
+        setpasswordArray(passwordArray.filter(i=>i.id!==id)) 
+        // setpasswordArray([...passwordArray,{...form, id: uuidv4()}])
+        // localStorage.setItem("password", JSON.stringify([...passwordArray,{...form, id: uuidv4()}]))
+        // console.log(([...passwordArray, form]))
+    }
+    
     const handleChange = (e) => {
         setform({ ...form, [e.target.name]: e.target.value })
     }
@@ -77,7 +133,7 @@ const Manager = () => {
             />
             <div className="absolute inset-0 -z-10 h-full w-full bg-white bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]"><div className="absolute left-0 right-0 top-0 -z-10 m-auto h-[310px] w-[310px] rounded-full bg-fuchsia-400 opacity-20 blur-[100px]"></div></div>
 
-            <div className='container mx-auto  max-w-4xl py-7 '>
+            <div className='container p-2 md:px-0 mx-auto  max-w-4xl py-7 '>
 
                 <h1 className='text-4xl text font-bold text-center'>
                     <span className='text-purple-900'>&lt;</span>
@@ -88,7 +144,7 @@ const Manager = () => {
                 <div className='text-black flex flex-col p-4 gap-8 items-center'>
                     <input value={form.site} onChange={handleChange} placeholder='Enter website URL' type="text" name='site' className='rounded-full border border-purple-900 w-full p-4 py-1' />
 
-                    <div className="flex w-full justify-between gap-8">
+                    <div className="flex flex-col md:flex-row  w-full justify-between gap-8">
                         <input value={form.username} onChange={handleChange} placeholder='Enter uesrname' type="text" name='username' className='rounded-full border border-purple-900 w-full p-4 py-1' />
 
                         <div className="relative">
@@ -99,13 +155,14 @@ const Manager = () => {
                         </div>
                     </div>
 
-                    <button onClick={savePassword} className='flex justify-center font-bold gap-1 items-center rounded-full bg-purple-600 py-2 px-4 w-fit hover:bg-purple-500'>
+                    <button onClick={savePassword} className='flex justify-center text-white font-bold gap-1 items-center rounded-full bg-purple-600 py-2 px-4 w-fit hover:bg-purple-500'>
                         <lord-icon
                             src="https://cdn.lordicon.com/gzqofmcx.json"
                             trigger="hover"
+                            
                         >
                         </lord-icon>
-                        Add Password</button>
+                        Save</button>
                 </div>
 
                 <div className="passwords">
@@ -118,6 +175,7 @@ const Manager = () => {
                                     <th className='py-2'>Site</th>
                                     <th className='py-2'>Username</th>
                                     <th className='py-2'>Password</th>
+                                    <th className='py-2'>Action</th>
                                 </tr>
                             </thead>
                             <tbody className='bg-linear-to-r from-blue-100 to-purple-200'>
@@ -153,6 +211,20 @@ const Manager = () => {
                                                     </span>
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td className='  py-2 border border-white text-center '>
+                                           <span className='cursor-pointer mx-1' onClick={()=>{editPassword(item.id)}}>
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/vwzukuhn.json"
+                                                trigger="hover">
+                                                
+                                            </lord-icon></span> 
+                                           <span className='cursor-pointer mx-1' onClick={()=>{deletePassword(item.id)}}>
+                                            <lord-icon
+                                                src="https://cdn.lordicon.com/egqwwrlq.json"
+                                                trigger="hover">
+                                                
+                                            </lord-icon></span> 
                                         </td>
                                     </tr>
                                 })}

@@ -9,11 +9,17 @@ function App() {
 
   return (
     <>
+    <div className='min-h-screen flex flex-col'>
+
       <Navbar/>
-      <div className='min-h-[81vh]'>
+      <div className=' flex-grow'>
         <Manager/>
       </div>
+      <div className=''>
+
       <Footer/>
+      </div>
+    </div>
     </>
   )
 }
