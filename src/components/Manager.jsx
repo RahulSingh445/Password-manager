@@ -11,11 +11,18 @@ const Manager = () => {
     const [form, setform] = useState({ site: "", username: "", password: "" })
     const [passwordArray, setpasswordArray] = useState([])
 
+    const getPasswords = async () => {
+        let req = await fetch("http://localhost:3000/")
+
+        let passwords = await req.json()
+
+        setpasswordArray(passwords)
+
+    }
+
+
     useEffect(() => {
-        let passwords = localStorage.getItem('passwords')
-        if (passwords) {
-            setpasswordArray(JSON.parse(passwords))
-        }
+        getPasswords()
     }, [])
 
     const copyText = (text) => {
@@ -47,67 +54,80 @@ const Manager = () => {
         }
     }
 
-    const savePassword = () => {
-        if(form.site.length >1 && form.username.length > 1 && form.username.length > 1){
-            setpasswordArray([...passwordArray,{...form, id: uuidv4()}])
-        localStorage.setItem("password", JSON.stringify([...passwordArray,{...form, id: uuidv4()}]))
-        console.log(([...passwordArray, form]))
-        setform({site: "",username:"",password:""})
-        toast('Password saved', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-            transition: Bounce,
-        });
+    const savePassword = async () => {
+        if (form.site.length > 1 && form.username.length > 1 && form.password.length > 1) {
+            await fetch("http://localhost:3000/", {
+                method: "DELETE", headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ id: form.id })
+            })
+
+
+            setpasswordArray([...passwordArray, { ...form, id: uuidv4() }])
+            // localStorage.setItem("password", JSON.stringify([...passwordArray,{...form, id: uuidv4()}]))
+            // console.log(([...passwordArray, form]))
+            await fetch("http://localhost:3000/", {
+                method: "POST", headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ ...form, id: uuidv4() })
+            })
+            setform({ site: "", username: "", password: "" })
+            toast('Password saved', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
         }
-        else{
-             toast('Password not saved', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-            transition: Bounce,
-        });
+        else {
+            toast('Password not saved', {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
         }
-        
+
     }
-    const deletePassword = (id) => {
+    const deletePassword = async (id) => {
         console.log(id)
         let c = confirm("Do you want to delete this password")
-        if(c){
+        if (c) {
 
-            setpasswordArray(passwordArray.filter(item=>item.id!==id))
-            localStorage.setItem("password", JSON.stringify(passwordArray.filter(item=>item.id!==id)))
+            setpasswordArray(passwordArray.filter(item => item.id !== id))
+            // localStorage.setItem("password", JSON.stringify(passwordArray.filter(item=>item.id!==id)))
+
+            let res = await fetch("http://localhost:3000/", {
+                method: "DELETE", headers: { "Content-type": "application/json" },
+                body: JSON.stringify({ id })
+            })
+
             toast('Password Deleted', {
-            position: "top-right",
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-            theme: "dark",
-            transition: Bounce,
-        });
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+                theme: "dark",
+                transition: Bounce,
+            });
         }
     }
     const editPassword = (id) => {
-        setform(passwordArray.filter(i=>i.id===id)[0])
-        setpasswordArray(passwordArray.filter(i=>i.id!==id)) 
-        // setpasswordArray([...passwordArray,{...form, id: uuidv4()}])
-        // localStorage.setItem("password", JSON.stringify([...passwordArray,{...form, id: uuidv4()}]))
-        // console.log(([...passwordArray, form]))
+        setform({ ...passwordArray.filter(i => i.id === id)[0], id: id })
+        setpasswordArray(passwordArray.filter(i => i.id !== id))
     }
-    
+
     const handleChange = (e) => {
         setform({ ...form, [e.target.name]: e.target.value })
     }
@@ -159,7 +179,7 @@ const Manager = () => {
                         <lord-icon
                             src="https://cdn.lordicon.com/gzqofmcx.json"
                             trigger="hover"
-                            
+
                         >
                         </lord-icon>
                         Save</button>
@@ -213,18 +233,18 @@ const Manager = () => {
                                             </div>
                                         </td>
                                         <td className='  py-2 border border-white text-center '>
-                                           <span className='cursor-pointer mx-1' onClick={()=>{editPassword(item.id)}}>
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/vwzukuhn.json"
-                                                trigger="hover">
-                                                
-                                            </lord-icon></span> 
-                                           <span className='cursor-pointer mx-1' onClick={()=>{deletePassword(item.id)}}>
-                                            <lord-icon
-                                                src="https://cdn.lordicon.com/egqwwrlq.json"
-                                                trigger="hover">
-                                                
-                                            </lord-icon></span> 
+                                            <span className='cursor-pointer mx-1' onClick={() => { editPassword(item.id) }}>
+                                                <lord-icon
+                                                    src="https://cdn.lordicon.com/vwzukuhn.json"
+                                                    trigger="hover">
+
+                                                </lord-icon></span>
+                                            <span className='cursor-pointer mx-1' onClick={() => { deletePassword(item.id) }}>
+                                                <lord-icon
+                                                    src="https://cdn.lordicon.com/egqwwrlq.json"
+                                                    trigger="hover">
+
+                                                </lord-icon></span>
                                         </td>
                                     </tr>
                                 })}
@@ -234,9 +254,10 @@ const Manager = () => {
                         </table>}
                 </div>
             </div>
-
+            
         </>
     )
 }
+
 
 export default Manager
